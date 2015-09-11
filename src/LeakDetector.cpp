@@ -67,8 +67,11 @@ void LeakDetector::free(void* ptr, bool isAnArray)
     }
     else
     {
-        m_output << "Error : Trying to delete unallocated memory in function " << m_nextDeleteStack.top().m_func << ", in file "
-                 << m_nextDeleteStack.top().m_file << " at line " << m_nextDeleteStack.top().m_line << "." << std::endl;
+        if (m_nextDeleteStack.empty())
+            m_output << "Error : Trying to delete unallocated memory" << std::endl;
+        else
+            m_output << "Error : Trying to delete unallocated memory in function " << m_nextDeleteStack.top().m_func << ", in file "
+                     << m_nextDeleteStack.top().m_file << " at line " << m_nextDeleteStack.top().m_line << "." << std::endl;
     }
 }
 
