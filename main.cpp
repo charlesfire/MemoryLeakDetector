@@ -8,12 +8,12 @@ int main()
 {
     try
     {
-        std::cout << "test" << std::endl;
+        std::cout << "test*****************" << std::endl;
         int* ptr = new int;
-        std::cout << "test" << std::endl;
+        std::cout << "test-----------------" << std::endl;
         int* ptr2 = new int;
-        std::cout << "test" << std::endl;
-        //LeakDetector::getInstance().nextDelete(__FILE__, __func__, __LINE__), delete ptr;
+        std::cout << "test+++++++++++++++++" << std::endl;
+        delete ptr;
     }
     catch (std::exception e)
     {

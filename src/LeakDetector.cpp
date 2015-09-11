@@ -82,5 +82,4 @@ LeakDetector& LeakDetector::getInstance()
 void LeakDetector::nextDelete(const std::string& file, const std::string& func, const int line)
 {
     m_nextDeleteStack.push(MemoryBlock(false, file, func, line));
-    std::cout<<"YOLOLOL3"<<std::endl;
 }

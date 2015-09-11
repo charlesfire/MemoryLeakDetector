@@ -8,7 +8,6 @@
 
     inline void* operator new(size_t size, const std::string& file, const std::string& func, const int line)
     {
-        std::cout << "YOLO" << std::endl;
         return LeakDetector::getInstance().allocate(size, false, file, func, line);
     }
 
@@ -16,18 +15,6 @@
     {
         return LeakDetector::getInstance().allocate(size, true, file, func, line);
     }
-
-    /*inline void operator delete(void* ptr, const std::string& file, const std::string& func, const int line) noexcept
-    {
-        LeakDetector::getInstance().nextDelete(file, func, line);
-        LeakDetector::getInstance().free(ptr, false);
-    }
-
-    inline void operator delete[](void* ptr, const std::string& file, const std::string& func, const int line) noexcept
-    {
-        LeakDetector::getInstance().nextDelete(file, func, line);
-        LeakDetector::getInstance().free(ptr, true);
-    }*/
 
     inline void operator delete(void* ptr) noexcept
     {
