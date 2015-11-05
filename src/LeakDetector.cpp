@@ -14,33 +14,39 @@ LeakDetector::MemoryBlock::MemoryBlock(bool isAnArray, const std::string& file, 
 
 LeakDetector::~LeakDetector()
 {
-    m_output << std::endl << "Memory Leak Detector v.1.0" << std::endl;
+    m_output << std::endl << std::endl << "------- Memory Leak Detector v.1.0 -------" << std::endl;
     if (!m_memory.empty())
     {
-        m_output << m_memory.size() << " memory leak detected." << std::endl;
-        for (auto it(m_memory.begin()); it != m_memory.end(); it++)
+        std::size_t totalMemoryLeakSize = 0;
+        for (auto memoryBlock : m_memory)
+            totalMemoryLeakSize += sizeof(memoryBlock.first);
+        m_output << m_memory.size() << " memory leaks detected totalizing " << totalMemoryLeakSize << " bytes." << std::endl << std::endl;
+        for (auto memoryBlock : m_memory)
         {
-            m_output << "Memory leak detected in function " << it->second.m_func << ", in file " << it->second.m_file << " at line " << it->second.m_line << "." << std::endl;
-            std::free(it->first);
+            m_output << "Memory leak of " << sizeof(memoryBlock.first) << " bytes detected." << std::endl;
+            m_output << "\tIn file " << memoryBlock.second.m_file << std::endl;
+            if (memoryBlock.second.m_file != "")
+                m_output << "\tIn function " << memoryBlock.second.m_func << std::endl;
+            m_output << "\tAt line " << memoryBlock.second.m_line << std::endl << std::endl;
+            std::free(memoryBlock.first);
         }
+        m_output << m_memory.size() << " memory leaks detected totalizing " << totalMemoryLeakSize << " bytes.";
     }
     else
         m_output << "No memory leak detected." << std::endl;
+
+    m_output << std::endl << std::endl << "------------------------------------------" << std::endl;
 }
 
 void* LeakDetector::allocate(size_t size, bool isAnArray, const std::string& file, const std::string& func, const int line)
 {
-    m_output << std::endl << "Memory Leak Detector v.1.0" << std::endl;
     void* ptr = std::malloc(size);
     m_memory.emplace(ptr, MemoryBlock(isAnArray, file, func, line));
-    m_output << "Memory allocated in function " << func << ", in file " << file << " at line " << line << "." << std::endl;
     return ptr;
 }
 
 void LeakDetector::free(void* ptr, bool isAnArray)
 {
-    m_output << std::endl << "Memory Leak Detector v.1.0" << std::endl;
-
     if (m_memory.find(ptr) != m_memory.end())
     {
         if (m_memory.at(ptr).m_isAnArray == isAnArray)
@@ -50,15 +56,20 @@ void LeakDetector::free(void* ptr, bool isAnArray)
         }
         else
         {
+            m_output << std::endl << std::endl << "------- Memory Leak Detector v.1.0 -------" << std::endl;
             if (isAnArray)
             {
-                m_output << "Error : Trying to delete a pointer with the delete[] operator in function " << m_nextDeleteStack.top().m_func << ", in file "
-                         << m_nextDeleteStack.top().m_file << " at line " << m_nextDeleteStack.top().m_line << "." << std::endl;
+                m_output << "Error : Trying to delete single element pointer with delete[] operator in file " << m_nextDeleteStack.top().m_file << ", ";
+                if (m_nextDeleteStack.top().m_func != "")
+                    m_output << "in function " << m_nextDeleteStack.top().m_func << ", ";
+                m_output << "at line " << m_nextDeleteStack.top().m_line << "." << std::endl;
             }
             else
             {
-                m_output << "Error : Trying to delete an array with the delete operator in function " << m_nextDeleteStack.top().m_func << ", in file "
-                         << m_nextDeleteStack.top().m_file << " at line " << m_nextDeleteStack.top().m_line << "." << std::endl;
+                m_output << "Error : Trying to delete array pointer with delete operator in file " << m_nextDeleteStack.top().m_file << ", ";
+                if (m_nextDeleteStack.top().m_func != "")
+                    m_output << "in function " << m_nextDeleteStack.top().m_func << ", ";
+                m_output << "at line " << m_nextDeleteStack.top().m_line << "." << std::endl;
             }
             m_memory.erase(ptr);
             std::free(ptr);
@@ -67,18 +78,20 @@ void LeakDetector::free(void* ptr, bool isAnArray)
     }
     else
     {
-        if (m_nextDeleteStack.empty())
-            m_output << "Error : Trying to delete unallocated memory" << std::endl;
-        else
-            m_output << "Error : Trying to delete unallocated memory in function " << m_nextDeleteStack.top().m_func << ", in file "
-                     << m_nextDeleteStack.top().m_file << " at line " << m_nextDeleteStack.top().m_line << "." << std::endl;
+        if (!m_nextDeleteStack.empty())
+        {
+            m_output << std::endl << std::endl << "------- Memory Leak Detector v.1.0 -------" << std::endl;
+            m_output << "Error : Trying to delete non dynamic memory in file " << m_nextDeleteStack.top().m_file << ", ";
+            if (m_nextDeleteStack.top().m_func != "")
+                m_output << "in function " << m_nextDeleteStack.top().m_func << ", ";
+            m_output << "at line " << m_nextDeleteStack.top().m_line << "." << std::endl;
+        }
     }
 }
 
 LeakDetector& LeakDetector::getInstance()
 {
     static LeakDetector instance;
-    std::cout << "Leak Detector called " << &instance << std::endl;
     return instance;
 }
 

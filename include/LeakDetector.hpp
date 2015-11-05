@@ -5,6 +5,7 @@
 #include <stack>
 #include <string>
 #include <ostream>
+#include "MAllocator.hpp"
 
 class LeakDetector
 {
@@ -28,9 +29,9 @@ class LeakDetector
         void nextDelete(const std::string& file, const std::string& func, const int line);
     private:
         LeakDetector();
-        std::unordered_map<void*, MemoryBlock> m_memory;
+        std::unordered_map<void*, MemoryBlock, std::hash<void*>, std::equal_to<void*>, MAllocator<std::pair<const void*, MemoryBlock>>> m_memory;
         std::ostream& m_output;
-        std::stack<MemoryBlock> m_nextDeleteStack;
+        std::stack<MemoryBlock, std::deque<MemoryBlock, MAllocator<MemoryBlock>>> m_nextDeleteStack;
 };
 
 #endif // LEAKDETECTOR_HPP
